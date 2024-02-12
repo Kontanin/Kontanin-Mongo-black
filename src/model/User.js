@@ -11,7 +11,20 @@ const UserShema = mongoose.Schema({
   status: {
     type: Number,
   },
-  123: {
+  fristname: {
+    type: String,
+  },
+  lastname: {
+    type: String,
+  },
+  address: {
+    type: String,
+  },
+  coutry: {
+    type: String,
+  },
+
+  zipcode: {
     type: Number,
   },
 });

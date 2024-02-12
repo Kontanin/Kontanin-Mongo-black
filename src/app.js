@@ -4,6 +4,9 @@ const app = express();
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const UserRouter = require('./router/User');
+const OrderRouter = require('./router/Orders');
+const ProductRouter = require('./router/Product');
+const BlogRouter = require('./router/Blog');
 dotenv.config();
 
 var user = [
@@ -18,6 +21,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use('/user', UserRouter);
+app.use('/orders', OrderRouter);
+app.use('/product', ProductRouter);
+app.use('/blog', BlogRouter);
 
 const port = process.env.port;
 
