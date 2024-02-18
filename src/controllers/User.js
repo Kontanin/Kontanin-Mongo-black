@@ -1,83 +1,138 @@
 const UserActivation = require('../model/User');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+
 //done check unique
 const Register = async (req, res) => {
+  try {
+    // filter data
+    const {
+      email,
+      password,
+      fristname,
+      lastname,
+      address,
+      coutry,
+      zipcode,
+      status,
+    } = req.body;
+    if (!(email && password)) return res.status(400).send({});
 
-  let obj = {
-    email: req.body?.email,
-    password: req.body?.password,
-    fristname: req.body?.fristname,
-    lastname: req.body?.lastname,
-    address: req.body?.address,
-    coutry: req.body?.coutry,
-    zipcode: req.body?.zipcode,
-    status: 0,
-  };
-  const find = await UserActivation.findOne(obj);
-  if (find) {
-    return res.json('e-mail laready have in server').status(400);
-  } else {
-    await UserActivation.create(obj);
+    const existUser = await UserActivation.findOne({ email });
+
+    if (existUser) {
+      return res.status(400).json({ message: 'e-mail already have in server' });
+    }
+    console.log('test');
+    // encrypt password
+    const encryptedPassword = bcrypt.hashSync(password, 10);
+
+    await UserActivation.create({
+      email,
+      password,
+      fristname,
+      lastname,
+      address,
+      coutry,
+      zipcode,
+      status,
+      password: encryptedPassword,
+    });
+
+    return res.json({ message: 'create email' }).status(200);
+  } catch (error) {
+    res.status(500).send({ message: String(error) });
   }
-
-  return res.json('create email').status(200);
 };
 
 const Login = async (req, res) => {
-  let obj = { email: req.body.email };
+  try {
+    const { email, password } = req.body;
+    if (!(email && password)) return res.status(400).send({});
 
-  const find = await UserActivation.findOne({ ...obj, status: 0 });
-  if (find) {
-    const check = await UserActivation.findOne({ ...req.body, status: 0 });
-    if (check) {
-      res.status(200).send('log in succes');
-    } else {
-      res.status(400).send('wrong password');
-    }
-  } else {
-    res.status(400).send('do not have this account in sever');
+    const user = await UserActivation.findOne({ email });
+
+    if (!(user && bcrypt.compareSync(password, user.password)))
+      return res
+        .status(400)
+        .send({ message: 'Username or password is incorrect.' });
+
+    const token = jwt.sign(
+      {
+        id: user._id,
+      },
+      process.env.SECRET_KEY,
+      {
+        expiresIn: '30d',
+      }
+    );
+
+    const data = {
+      id: user._id,
+      token,
+    };
+
+    res.status(200).json(data);
+  } catch (error) {
+    res.status(500).send({ message: String(error) });
   }
 };
+
 // done
 const DeleteUser = async (req, res) => {
-  let obj = {
-    email: req.body.email,
-    password: req.body.password,
-  };
-  const find = await UserActivation.findOneAndUpdate(
-    { ...obj, status: 0 },
-    { status: 900 }
-  );
-  console.log(find, { obj, status: 0 }, 'find..........');
-  if (find) {
-    return res.status(200).send('delete');
-  } else {
-    return res.status(400).send('password not collect');
+  try {
+    const id = req.params.id;
+
+    if (id !== req.user.id)
+      return res.status(400).send({ message: "You can't perform this action" });
+
+    await UserActivation.findByIdAndUpdate(id, {
+      isActive: false,
+    });
+
+    return res.status(200).send({ message: 'deleted' });
+  } catch (error) {
+    res.status(500).send({ message: String(error) });
   }
 };
 
 // ยังไม่เสร็จ
 const UpdateUser = async (req, res) => {
-  const find = await UserActivation.findOneAndUpdate(
-    { ...req.body, status: 0 },
-    { status: 900 }
-  );
-  if (find) {
-    return res.json('e-mail laready have in server').status(400);
-  } else {
-    let l = { ...req.body, status: 0 };
-    await UserActivation.create(l);
-  }
+  const id = req.params.id;
+  let {
+    email,
+    password,
+    status,
+    fristname,
+    lastname,
+    address,
+    coutry,
+    zipcode,
+  } = req.body;
 
-  return res.json('create email').status(200);
+  const find = await UserActivation.findByIdAndUpdate(
+    id,
+    {
+      fristname: fristname,
+      lastname: lastname,
+      address: address,
+      coutry: coutry,
+      zipcode: zipcode,
+      status: status,
+    },
+    { new: true }
+  );
+  console.log(find, 'find');
+  return res.json(find).status(200);
 };
 
 const Information = async (req, res) => {
-  let obj = { email: req.params.id, password: req.body.password };
-  const find = await UserActivation.findOne({ ...obj, status: 0 });
+  const id = req.params.id;
+  const find = await UserActivation.findById(id);
   console.log(find);
   if (find) {
     // delete find['password'];
-    // console.log(find);
+    console.log(find);
     let {
       email,
       password,
@@ -103,68 +158,39 @@ const Information = async (req, res) => {
   }
 };
 
-const UpdateInformation = async (req, res) => {
-  let {
-    email,
-    password,
-    status,
-    fristname,
-    lastname,
-    address,
-    coutry,
-    zipcode,
-  } = req.body;
-  let obj = {
-    'e-mail': req.params.id,
-    status: 0,
-    fristname: fristname,
-    lastname: lastname,
-    address: address,
-    coutry: coutry,
-    zipcode: zipcode,
-  };
-  const find = await UserActivation.findOneAndUpdate({ ...obj, status: 0 },{ ...obj, status: 0 });
-  if (find) {
-    return res.json('success edit data');
-  } else {
-    return res.json('not found this email').status(400);
+const UpdatePass = async (req, res) => {
+  try {
+    let { email, password } = req.body;
+    const id = req.params.id;
+    console.log(req.body, id, req.user);
+    if (id !== req.user.id)
+      return res.status(400).send({ message: "You can't perform this action" });
+
+    const encryptedPassword = bcrypt.hashSync(password, 10);
+    let p = await UserActivation.findByIdAndUpdate(
+      id,
+      {
+        email: email,
+        password: encryptedPassword,
+      },
+      { new: true }
+    );
+
+    return res.status(200).send({ message: p });
+  } catch (error) {
+    res.status(500).send({ message: String(error) });
   }
 };
 
 const Userlist = async (req, res) => {
-  const find = await UserActivation.find({ status: 0 });
+  const id = req.params.id;
+  console.log(id, 'id');
+  const find = await UserActivation.find();
 
-  if (find) {
-    // delete find['password'];
-    console.log(find);
-    const UserWithOutPass = find.map((user) => {
-      let {
-        email,
-        password,
-        status,
-        fristname,
-        lastname,
-        address,
-        coutry,
-        zipcode,
-      } = user;
-      let obj = {
-        email: email,
-        status: 0,
-        fristname: fristname,
-        lastname: lastname,
-        address: address,
-        coutry: coutry,
-        zipcode: zipcode,
-      };
+  if (id !== req.user.id)
+    return res.status(400).send({ message: "You can't perform this action" });
 
-      return obj;
-    });
-
-    return res.json(UserWithOutPass);
-  } else {
-    return res.json('not found this email').status(400);
-  }
+  return res.status(200).send(find);
 };
 
 module.exports = {
@@ -173,6 +199,6 @@ module.exports = {
   Login,
   DeleteUser,
   Information,
-  UpdateInformation,
+  UpdatePass,
   Userlist,
 };

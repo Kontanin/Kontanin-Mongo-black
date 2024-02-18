@@ -1,20 +1,24 @@
 const express = require('express');
+
 const {
   Register,
   Login,
   DeleteUser,
   UpdateUser,
   Information,
-  UpdateInformation
-  ,Userlist
+  UpdatePass,
+  Userlist,
 } = require('../controllers/User');
+
 const router = express.Router();
 
-router.post('/Register', Register);
-router.post('/Login', Login);
-router.delete('/Delete/:id', DeleteUser);
-router.patch('/Update/:id', UpdateUser);
-router.get('/Information/:id', Information);
-router.patch('/Information/:id',UpdateInformation);
-router.get('/Alluser',Userlist)
+router.post('/register', Register);
+router.post('/login', Login);
+
+
+router.delete('/delete/:id', DeleteUser);
+router.patch('/update/:id', UpdateUser);
+router.get('/information/:id', Information);
+router.patch('/pass/:id', UpdatePass);
+router.get('/Alluser/:id', Userlist);
 module.exports = router;

@@ -1,26 +1,37 @@
 const express = require('express');
+const dotenv = require('dotenv');
+dotenv.config();
+
 const cors = require('cors');
 const app = express();
+
 const mongoose = require('mongoose');
-const dotenv = require('dotenv');
+
 const UserRouter = require('./router/User');
 const OrderRouter = require('./router/Orders');
 const ProductRouter = require('./router/Product');
 const BlogRouter = require('./router/Blog');
-dotenv.config();
+const bodyParser = require('body-parser');
+const auth = require('./middlewares/auth');
 
 var user = [
   { email: 'boss@gmail.com', password: 123 },
   { email: 'boss1@gamil.com', password: 123 },
 ];
-app.use(cors());
-// For parsing application/json
-app.use(express.json());
 
-// For parsing application/x-www-form-urlencoded
-app.use(express.urlencoded({ extended: true }));
+
+
+
+// Create Multer instance with the storage configuration
+
+app.use(express.static('./public'));
+app.use(cors());
+app.use(auth);
+app.use(bodyParser.json({ limit: '5mb', extended: true }));
+app.use(bodyParser.urlencoded({ limit: '5mb', extended: true }));
 
 app.use('/user', UserRouter);
+
 app.use('/orders', OrderRouter);
 app.use('/product', ProductRouter);
 app.use('/blog', BlogRouter);

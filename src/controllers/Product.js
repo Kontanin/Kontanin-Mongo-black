@@ -1,74 +1,116 @@
 const ProductActivation = require('../model/Product');
 
 const CreateProduct = async (req, res) => {
-  console.log(req.body, 'req');
-  let obj = { email: req.body.email, status: 0 };
   try {
-    const find = await ProductActivation.findOne(obj);
-
-    if (find) {
-      return res.json('Products laready have in server').status(400);
-    } else {
-      let l = { ...req.body, status: 0 };
-      console.log(l, 'l');
-      await ProductActivation.create(l);
-    }
+    let {
+      Name,
+      Description,
+      Stock,
+      Status,
+      Price,
+      FreeShipping,
+      Company,
+      Category,
+    } = req.body;
+    let obj = {
+      Name: Name,
+      Description: Description,
+      Stock: Stock,
+      Status: Status,
+      Price: Price,
+      FreeShipping: FreeShipping,
+      Company: Company,
+      Category: Category,
+    };
+    const product = await ProductActivation.create(obj);
+    return res.json(product).status(200);
   } catch (e) {
     console.log(e);
+    return res.json(e).status(200);
   }
+};
+const Productlist = async (req, res) => {
+  try {
+    const products = await ProductActivation.find({});
 
-  return res.json('create email').status(200);
+    res.status(200).json({ products, count: products.length });
+  } catch (e) {
+    res.status(400).json('something wrong');
+  }
 };
 
 const EditProduct = async (req, res) => {
-  let obj = { email: req.body.email };
+  const id = req.params.id;
 
-  const findEmil = await UserActivation.findOne(obj);
+  console.log(id, 'id');
+  let {
+    Name,
+    Description,
+    Stock,
+    Status,
+    Price,
+    FreeShipping,
+    Company,
+    Category,
+  } = req.body;
+  let obj = {
+    Name: Name,
+    Description: Description,
+    Stock: Stock,
+    Status: Status,
+    Price: Price,
+    FreeShipping: FreeShipping,
+    Company: Company,
+    Category: Category,
+  };
 
-  if (findEmil) {
-    const find = await UserActivation.findOneAndUpdate(
-      { ...req.body, status: 0 },
-      { ...req.body, status: 900 }
-    );
+  const product = await ProductActivation.findByIdAndUpdate(id, obj, {
+    new: true,
+  });
 
-    console.log(find, { ...req.body, status: 0 }, 'find..........');
-    if (find) {
-      return res.status(200).send('delete');
-    } else {
-      return res.status(400).send('password not collect');
-    }
+  if (!product) {
+    res.status(400).send('not found');
   }
-  return res.status(400).send('not found');
+  return res.status(200).send({ product });
 };
 
 const DeleteProduct = async (req, res) => {
-  let obj = { email: req.body.email };
+  const id = req.params.id;
 
-  const findEmil = await UserActivation.findOne(obj);
-
-  if (findEmil) {
-    const find = await UserActivation.findOneAndUpdate(
-      { ...req.body, status: 0 },
-      { ...req.body, status: 900 }
-    );
-
-    console.log(find, { ...req.body, status: 0 }, 'find..........');
-    if (find) {
-      return res.status(200).send('delete');
-    } else {
-      return res.status(400).send('password not collect');
-    }
+  const product = await ProductActivation.findByIdAndDelete(id);
+  if (!product) {
+    return res.status(400).json('not found');
   }
-  return res.status(400).send('not found');
+
+  return res.status(200).json(product);
 };
 
-const Productlist = async (req, res) => {};
-const ProductDetail = async (req, res) => {};
+const OneProduct = async (req, res) => {
+  const id = req.params.id;
+
+  const product = await ProductActivation.findById(id);
+
+  return res.status(200).json(product);
+};
+
+const uploadSingleImage = async (req, res) => {
+  console.log('doine');
+  let file = req.file;
+  console.log(file);
+  if (!file) {
+    res.status(400).send({mes:'Plese upload files'});
+  } else {
+    res.status(200).send({
+      file,
+    });
+  }
+};
 
 module.exports = {
   CreateProduct,
   EditProduct,
   DeleteProduct,
   Productlist,
-  ProductDetail,
+  OneProduct,
+  uploadSingleImage,
 };

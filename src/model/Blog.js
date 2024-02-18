@@ -1,10 +1,7 @@
 const mongoose = require('mongoose');
 
 const BlogShema = mongoose.Schema({
-  id: {
-    type: String,
-    unique: true,
-  },
+
   title: {
     type: String,
   },

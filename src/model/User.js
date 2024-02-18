@@ -27,5 +27,8 @@ const UserShema = mongoose.Schema({
   zipcode: {
     type: Number,
   },
+  isActive: {
+    type: Boolean,
+  }
 });
 module.exports = mongoose.model('User', UserShema);
