@@ -2,41 +2,41 @@ const mongoose = require('mongoose');
 
 const ProductShema = mongoose.Schema(
   {
-    Name: {
+    name: {
       type: String,
       trim: true,
       required: [true, 'Please provide product name'],
       maxlength: [100, 'Name can not be more than 100 characters'],
     },
-    Description: {
+    description: {
       type: String,
       required: [true, 'Please provide product description'],
       maxlength: [1000, 'Description can not be more than 1000 characters'],
     },
-    Stock: {
+    stock: {
       type: Number,
     },
-    Status: {
+    status: {
       type: Number,
     },
-    Price: {
+    price: {
       type: Number,
       required: [true, 'Please provide product price'],
       default: 0,
     },
-    Image: {
+    image: {
       type: String,
       default: '/uploads/example.jpeg',
     },
-    FreeShipping: {
+    freeShipping: {
       type: Boolean,
       default: false,
     },
-    Company: {
+    company: {
       type: String,
       required: [true, 'Please provide company'],
     },
-    Category: {
+    category: {
       type: String,
       required: [true, 'Please provide product category'],
       enum: ['others', 'cat', 'dog', 'small pet', 'fish', 'bird'],

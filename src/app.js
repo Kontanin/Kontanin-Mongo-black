@@ -1,4 +1,5 @@
 const express = require('express');
+require('express-async-errors');
 const dotenv = require('dotenv');
 dotenv.config();
 
@@ -14,15 +15,16 @@ const BlogRouter = require('./router/Blog');
 const bodyParser = require('body-parser');
 const auth = require('./middlewares/auth');
 
+const CustomError = require('./errors');
+
+const errorHandlerMiddleware = require('./middlewares/error-handler');
 var user = [
   { email: 'boss@gmail.com', password: 123 },
   { email: 'boss1@gamil.com', password: 123 },
 ];
 
-
-
-
 // Create Multer instance with the storage configuration
+app.use(errorHandlerMiddleware);
 
 app.use(express.static('./public'));
 app.use(cors());

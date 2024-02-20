@@ -1,4 +1,5 @@
 const BlogActivation = require('../model/Blog');
+const CustomError = require('../errors');
 
 const CreateBlog = async (req, res) => {
   const { title, username, tag, content } = req.body;
@@ -25,17 +26,33 @@ const DeleteBlog = async (req, res) => {
 
     return res.status(200).send({ message: 'deleted' });
   } catch (error) {
-    res.status(500).send({ message: String(error) });
+    res.status(500).send({ message: error });
   }
 };
-const BlogList = async (res, req) => {
-  const blob = await BlogActivation.find({});
-  return res.status(200).send(blob);
+
+// async function BlogList(req, res) {
+//   // const blob = await BlogActivation.find({});
+//   // if (!blob) {
+//   throw new CustomError.BadRequestError('Please provide tax and shipping fee');
+//   // throw new CustomError.BadRequestError('Please provide tax and shipping fee');
+//   // }
+//   // return res.status(200).send('blob');
+// }
+const BlogList = async (req, res) => {
+  throw new CustomError.BadRequestError('Authentication Invalid');
+  // console.log('anything');
+  // 0 / 0;
 };
+
 const Blog = async (req, res) => {
-  const id = req.params.id;
-  const blob = await BlogActivation.findById(id);
-  return res.status(200).send(blob);
+  try {
+    console.log(req.params.id);
+    const id = req.params.id;
+    const blob = await BlogActivation.findById(id);
+    return res.status(200).send(blob);
+  } catch (e) {
+    return res.status(400).send({ msg: e });
+  }
 };
 module.exports = {
   CreateBlog,

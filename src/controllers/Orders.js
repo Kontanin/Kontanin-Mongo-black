@@ -1,5 +1,6 @@
 const OrderActivation = require('../model/Orders');
 const ProductActivation = require('../model/Product');
+const CustomError = require('../errors');
 
 const orderid = require('order-id')('key');
 // YYMM-000000
@@ -41,21 +42,22 @@ const CreateOrder = async (req, res) => {
 
   for (const item of cartItems) {
     const dbProduct = await ProductActivation.findById(item._id);
-    // if (!dbProduct) {
-    //   res.status(400).send({ msg: 'done' });
-    // }
-    console.log(dbProduct.Name, 'qwer');
-    const { Name, Price, _id } = dbProduct || {};
+    if (!dbProduct) {
+      return res.status(400).send({ msg: 'done' });
+    }
+
+    const { name, price, _id } = dbProduct || {};
     const singleOrderItem = {
       amount: item.amount,
-      Name,
-      Price,
+      name,
+      price,
+
       product: _id,
     };
     // // add item to order
     OrderItems = [...OrderItems, singleOrderItem];
     // // calculate subtotal
-    subtotal += item.amount * Price;
+    subtotal += item.amount * price;
   }
 
   let p = await OrderActivation.find({}).sort({ OrderId: -1 }).limit(1);
@@ -75,8 +77,8 @@ const CreateOrder = async (req, res) => {
   }
   console.log(OrderItems, 'orderItems');
   const order = await OrderActivation.create({
-    OrderId: OrderId,
-    OrderItems: OrderItems,
+    OrderId,
+    OrderItems,
     total,
     subtotal,
     tax,
@@ -85,14 +87,14 @@ const CreateOrder = async (req, res) => {
     user: req.user.id,
   });
 
-  //OrderActivation.create(orders);
+
   return res.json(order).status({ msg: 'create orders sussess' });
 };
 
 const UpdateOrder = async (req, res) => {
   const id = req.params.id;
   const { status, shippingFee, paymentIntentId, OrderItems, total } = req.body;
-  // const find = 0;
+
   const find = await OrderActivation.findByIdAndUpdate(
     id,
     {
@@ -119,7 +121,7 @@ const DeleteOrder = async (req, res) => {
 
     return res.status(200).send({ message: 'deleted' });
   } catch (error) {
-    res.status(500).send({ message: String(error) });
+    res.status(500).send({ message: error});
   }
 };
 

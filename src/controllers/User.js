@@ -1,7 +1,7 @@
 const UserActivation = require('../model/User');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-
+const CustomError = require('../errors');
 //done check unique
 const Register = async (req, res) => {
   try {
@@ -23,13 +23,13 @@ const Register = async (req, res) => {
     if (existUser) {
       return res.status(400).json({ message: 'e-mail already have in server' });
     }
-    console.log('test');
     // encrypt password
     const encryptedPassword = bcrypt.hashSync(password, 10);
 
     await UserActivation.create({
       email,
       password,
+      role: 'customer',
       fristname,
       lastname,
       address,
@@ -37,11 +37,12 @@ const Register = async (req, res) => {
       zipcode,
       status,
       password: encryptedPassword,
+      isActive: true,
     });
 
     return res.json({ message: 'create email' }).status(200);
   } catch (error) {
-    res.status(500).send({ message: String(error) });
+    res.status(500).send({ message: error });
   }
 };
 
@@ -74,25 +75,20 @@ const Login = async (req, res) => {
 
     res.status(200).json(data);
   } catch (error) {
-    res.status(500).send({ message: String(error) });
+    res.status(500).send({ message: error });
   }
 };
 
 // done
 const DeleteUser = async (req, res) => {
   try {
-    const id = req.params.id;
-
-    if (id !== req.user.id)
-      return res.status(400).send({ message: "You can't perform this action" });
-
     await UserActivation.findByIdAndUpdate(id, {
       isActive: false,
     });
 
     return res.status(200).send({ message: 'deleted' });
   } catch (error) {
-    res.status(500).send({ message: String(error) });
+    res.status(500).send({ message: error });
   }
 };
 
@@ -105,6 +101,7 @@ const UpdateUser = async (req, res) => {
     status,
     fristname,
     lastname,
+    role,
     address,
     coutry,
     zipcode,
@@ -113,16 +110,20 @@ const UpdateUser = async (req, res) => {
   const find = await UserActivation.findByIdAndUpdate(
     id,
     {
-      fristname: fristname,
-      lastname: lastname,
-      address: address,
-      coutry: coutry,
-      zipcode: zipcode,
-      status: status,
+      fristname,
+      lastname,
+      address,
+      role,
+      coutry,
+      zipcode,
+      status,
     },
     { new: true }
   );
-  console.log(find, 'find');
+  if (!find) {
+    return res.json({ msg: 'not found this user' }).status(200);
+  }
+
   return res.json(find).status(200);
 };
 
@@ -139,22 +140,24 @@ const Information = async (req, res) => {
       status,
       fristname,
       lastname,
+      role,
       address,
       coutry,
       zipcode,
     } = find;
 
     let ans = {
-      email: email,
-      fristname: fristname,
-      lastname: lastname,
-      address: address,
-      coutry: coutry,
-      zipcode: zipcode,
+      email,
+      fristname,
+      lastname,
+      address,
+      role,
+      coutry,
+      zipcode,
     };
     return res.json(ans);
   } else {
-    return res.json('not found this email').status(400);
+    return res.json({ msg: 'not found this email' }).status(400);
   }
 };
 
@@ -178,19 +181,29 @@ const UpdatePass = async (req, res) => {
 
     return res.status(200).send({ message: p });
   } catch (error) {
-    res.status(500).send({ message: String(error) });
+    res.status(500).send({ message: error });
   }
 };
-
+const UpdateRole = async (req, res) => {
+  try {
+    let { role } = req.body;
+    const find = await UserActivation.findByIdAndUpdate(
+      id,
+      { role },
+      { new: true }
+    );
+    return res.status(200).send({ message: p });
+  } catch (error) {
+    res.status(500).send({ message: error });
+  }
+};
 const Userlist = async (req, res) => {
-  const id = req.params.id;
-  console.log(id, 'id');
-  const find = await UserActivation.find();
-
-  if (id !== req.user.id)
-    return res.status(400).send({ message: "You can't perform this action" });
-
-  return res.status(200).send(find);
+  try {
+    const find = await UserActivation.find({ isActive: true });
+    return res.status(200).send(find);
+  } catch (err) {
+    res.status(500).send({ message: error });
+  }
 };
 
 module.exports = {
@@ -201,4 +214,5 @@ module.exports = {
   Information,
   UpdatePass,
   Userlist,
+  UpdateRole,
 };

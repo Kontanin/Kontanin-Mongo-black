@@ -7,7 +7,15 @@ const UserShema = mongoose.Schema({
   },
   password: {
     type: String,
+
   },
+role:{
+  type: String,
+  enum: ['customer', 'admin'],
+  default: 'customer',
+  required: true,
+}
+  ,
   status: {
     type: Number,
   },
