@@ -2,42 +2,33 @@ const ProductActivation = require('../model/Product');
 const CustomError = require('../errors');
 
 const CreateProduct = async (req, res) => {
-  try {
-    let {
-      name,
-      description,
-      stock,
-      Status,
-      price,
-      freeShipping,
-      company,
-      category,
-    } = req.body;
-    let obj = {
-      name,
-      description,
-      stock,
-      Status,
-      price,
-      freeShipping,
-      company,
-      category,
-    };
-    const product = await ProductActivation.create(obj);
-    return res.json(product).status(200);
-  } catch (e) {
-    console.log(e);
-    return res.json(e).status(200);
-  }
+  let {
+    name,
+    description,
+    stock,
+    Status,
+    price,
+    freeShipping,
+    company,
+    category,
+  } = req.body;
+  let obj = {
+    name,
+    description,
+    stock,
+    Status,
+    price,
+    freeShipping,
+    company,
+    category,
+  };
+  const product = await ProductActivation.create(obj);
+  return res.json(product).status(200);
 };
 const Productlist = async (req, res) => {
-  try {
-    const products = await ProductActivation.find({});
+  const products = await ProductActivation.find({});
 
-    res.status(200).json({ products, count: products.length });
-  } catch (e) {
-    res.status(400).json({ msg: 'something wrong' });
-  }
+  res.status(200).json({ products, count: products.length });
 };
 
 const EditProduct = async (req, res) => {
@@ -78,7 +69,9 @@ const DeleteProduct = async (req, res) => {
 
   const product = await ProductActivation.findByIdAndDelete(id);
   if (!product) {
-    return res.status(400).json({ msg: 'not found' });
+    throw new CustomError.BadRequestError(
+      'Please provide tax and shipping fee'
+    );
   }
 
   return res.status(200).json(product);
@@ -95,8 +88,13 @@ const OneProduct = async (req, res) => {
 const uploadSingleImage = async (req, res) => {
   let file = req.file;
   if (!file) {
-    res.status(400).send({ msg: 'Plese upload files' });
+    console.log('pass');
+    throw new CustomError.BadRequestError(
+      'Please provide tax and shipping fee'
+    );
   } else {
+    console.log(res.body);
+
     res.status(200).send({
       file,
     });

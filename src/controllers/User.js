@@ -52,15 +52,18 @@ const Login = async (req, res) => {
     if (!(email && password)) return res.status(400).send({});
 
     const user = await UserActivation.findOne({ email });
+    console.log('user');
+    if (!(user && bcrypt.compareSync(password, user.password))) {
+      // throw new CustomError.BadRequestError(
+      //   'Please provide tax and shipping fee'
+      // );
+    }
 
-    if (!(user && bcrypt.compareSync(password, user.password)))
-      return res
-        .status(400)
-        .send({ message: 'Username or password is incorrect.' });
-
+    console.log('e');
     const token = jwt.sign(
       {
         id: user._id,
+        role: 'customer',
       },
       process.env.SECRET_KEY,
       {
@@ -69,27 +72,24 @@ const Login = async (req, res) => {
     );
 
     const data = {
+      role: user.role,
       id: user._id,
       token,
     };
-
+    console.log('try');
     res.status(200).json(data);
   } catch (error) {
-    res.status(500).send({ message: error });
+    console.log(error);
+    throw new CustomError.BadRequestError(String(error));
   }
 };
 
 // done
 const DeleteUser = async (req, res) => {
-  try {
-    await UserActivation.findByIdAndUpdate(id, {
-      isActive: false,
-    });
-
-    return res.status(200).send({ message: 'deleted' });
-  } catch (error) {
-    res.status(500).send({ message: error });
-  }
+  await UserActivation.findByIdAndUpdate(id, {
+    isActive: false,
+  });
+  return res.status(200).send({ message: 'deleted' });
 };
 
 // ยังไม่เสร็จ
@@ -121,7 +121,9 @@ const UpdateUser = async (req, res) => {
     { new: true }
   );
   if (!find) {
-    return res.json({ msg: 'not found this user' }).status(200);
+    throw new CustomError.BadRequestError(
+      'Please provide tax and shipping fee'
+    );
   }
 
   return res.json(find).status(200);
@@ -157,32 +159,30 @@ const Information = async (req, res) => {
     };
     return res.json(ans);
   } else {
-    return res.json({ msg: 'not found this email' }).status(400);
+    throw new CustomError.BadRequestError(
+      'Please provide tax and shipping fee'
+    );
   }
 };
 
 const UpdatePass = async (req, res) => {
-  try {
-    let { email, password } = req.body;
-    const id = req.params.id;
-    console.log(req.body, id, req.user);
-    if (id !== req.user.id)
-      return res.status(400).send({ message: "You can't perform this action" });
+  let { email, password } = req.body;
+  const id = req.params.id;
+  console.log(req.body, id, req.user);
+  if (id !== req.user.id)
+    return res.status(400).send({ message: "You can't perform this action" });
 
-    const encryptedPassword = bcrypt.hashSync(password, 10);
-    let p = await UserActivation.findByIdAndUpdate(
-      id,
-      {
-        email: email,
-        password: encryptedPassword,
-      },
-      { new: true }
-    );
+  const encryptedPassword = bcrypt.hashSync(password, 10);
+  let p = await UserActivation.findByIdAndUpdate(
+    id,
+    {
+      email: email,
+      password: encryptedPassword,
+    },
+    { new: true }
+  );
 
-    return res.status(200).send({ message: p });
-  } catch (error) {
-    res.status(500).send({ message: error });
-  }
+  return res.status(200).send({ message: p });
 };
 const UpdateRole = async (req, res) => {
   try {
@@ -198,12 +198,8 @@ const UpdateRole = async (req, res) => {
   }
 };
 const Userlist = async (req, res) => {
-  try {
-    const find = await UserActivation.find({ isActive: true });
-    return res.status(200).send(find);
-  } catch (err) {
-    res.status(500).send({ message: error });
-  }
+  const find = await UserActivation.find({ isActive: true });
+  return res.status(200).send(find);
 };
 
 module.exports = {

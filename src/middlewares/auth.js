@@ -1,13 +1,11 @@
 const jwt = require('jsonwebtoken');
+const CustomError = require('../errors');
 
 const SECRET_KEY = process.env.SECRET_KEY;
 
 const authentication = (req, res, next) => {
   const token = req.headers['authorization'];
 
-  if (req.path.includes('/register') || req.path.includes('/login')) {
-    return next();
-  }
   if (!token)
     return res
       .status(403)
@@ -22,5 +20,15 @@ const authentication = (req, res, next) => {
     return res.status(401).send({ message: 'Invalid token' });
   }
 };
-
-module.exports = authentication;
+const authorizePermissions = (...roles) => {
+  return (req, res, next) => {
+    console.log(roles, 'roles', req.user.role);
+    if (!roles.includes(req.user.role)) {
+      throw new CustomError.UnauthorizedError(
+        'Unauthorized to access this route'
+      );
+    }
+    next();
+  };
+};
+module.exports = { authentication, authorizePermissions };

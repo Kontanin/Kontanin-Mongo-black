@@ -1,6 +1,23 @@
+/**
+ * @swagger
+ * /api/hello:
+ *   post:
+ *     summary: Returns a hello message
+ *     responses:
+ *       200:
+ *         description: Successful response
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: Hello, Swagger!
+ */
+
 const express = require('express');
+
+const { authentication, authorizePermissions } = require('../middlewares/auth');
 // require('express-async-errors');
 const CustomError = require('../errors');
+
 // const errorHandlerMiddleware = require('../middlewares/error-handler');
 const {
   CreateBlog,
@@ -13,22 +30,12 @@ const router = express.Router();
 
 // router.use(errorHandlerMiddleware);
 
-router.post('/create', CreateBlog);
+router.post('/create', authentication, CreateBlog);
 
-router.patch('/edit/:id', EditBlog);
-router.delete('/delete', DeleteBlog);
-// router.route('/bloglist').get(BlogList);
-router.get('/bloglist', async (req, res) => {
-  try {
-    await BlogList(req, res);
-  } catch (e) {
-    console.log(e, 'e');
-    throw new CustomError.BadRequestError(
-      'Please provide tax and shipping fee'
-    );
-  }
-  // throw new CustomError.BadRequestError('Please provide tax and shipping fee');
-});
-router.get('/blog-id/:id', Blog);
+router.patch('/edit/:id', authentication, EditBlog);
+router.delete('/delete', authentication, DeleteBlog);
+
+router.get('/bloglist', authentication, BlogList);
+router.get('/blog-id/:id', authentication, Blog);
 
 module.exports = router;

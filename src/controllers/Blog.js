@@ -30,19 +30,16 @@ const DeleteBlog = async (req, res) => {
   }
 };
 
-// async function BlogList(req, res) {
-//   // const blob = await BlogActivation.find({});
-//   // if (!blob) {
-//   throw new CustomError.BadRequestError('Please provide tax and shipping fee');
-//   // throw new CustomError.BadRequestError('Please provide tax and shipping fee');
-//   // }
-//   // return res.status(200).send('blob');
-// }
-const BlogList = async (req, res) => {
-  throw new CustomError.BadRequestError('Authentication Invalid');
-  // console.log('anything');
-  // 0 / 0;
-};
+async function BlogList(req, res) {
+  console.log(req.user);
+  const blob = await BlogActivation.find({});
+  if (!blob) {
+    throw new CustomError.BadRequestError(
+      'Please provide tax and shipping fee'
+    );
+  }
+  return res.status(200).send(blob);
+}
 
 const Blog = async (req, res) => {
   try {

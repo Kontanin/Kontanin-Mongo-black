@@ -1,6 +1,7 @@
 const express = require('express');
 require('express-async-errors');
 const dotenv = require('dotenv');
+
 dotenv.config();
 
 const cors = require('cors');
@@ -24,19 +25,26 @@ var user = [
 ];
 
 // Create Multer instance with the storage configuration
-app.use(errorHandlerMiddleware);
 
 app.use(express.static('./public'));
 app.use(cors());
-app.use(auth);
+
 app.use(bodyParser.json({ limit: '5mb', extended: true }));
 app.use(bodyParser.urlencoded({ limit: '5mb', extended: true }));
+
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./swagger.json');
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+//app.get('/api-docs', swaggerUi.setup(swaggerDocument));
+app.use('/blog', BlogRouter);
 
 app.use('/user', UserRouter);
 
 app.use('/orders', OrderRouter);
 app.use('/product', ProductRouter);
-app.use('/blog', BlogRouter);
+
+app.use(errorHandlerMiddleware);
 
 const port = process.env.port;
 

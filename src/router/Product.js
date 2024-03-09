@@ -1,6 +1,6 @@
 const express = require('express');
 const multer = require('../middlewares/multer');
-
+const { authentication, authorizePermissions } = require('../middlewares/auth');
 const {
   CreateProduct,
   EditProduct,
@@ -11,12 +11,24 @@ const {
 } = require('../controllers/Product');
 const router = express.Router();
 
-router.post('/create', CreateProduct);
-router.post('/upload', multer.uploadImg.single('image'), uploadSingleImage);
-router.patch('/edit/:id', EditProduct);
-router.get('/list', Productlist);
-router.get('/get/:id', OneProduct);
+router.post('/create', authentication, CreateProduct);
+router.post(
+  '/upload/:id',
+  authentication,
+  authorizePermissions('admin'),
+  multer.uploadImg.single('image'),
+  uploadSingleImage
+);
 
-router.delete('/delete/:id', DeleteProduct);
+router.patch('/edit/:id', authentication, EditProduct);
+router.get('/list', authentication, Productlist);
+router.get('/get/:id', authentication, OneProduct);
+
+router.delete(
+  '/delete/:id',
+  authentication,
+  authorizePermissions('admin'),
+  DeleteProduct
+);
 
 module.exports = router;

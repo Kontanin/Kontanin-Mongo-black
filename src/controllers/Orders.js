@@ -32,10 +32,15 @@ const generateOrderId = (OrderId) => {
 const CreateOrder = async (req, res) => {
   const { items: cartItems, tax, shippingFee } = req.body;
   if (!cartItems || cartItems.length < 1) {
+    throw new CustomError.BadRequestError(
+      'Please provide tax and shipping fee'
+    );
     return res.status(400).send({ msg: 'No cart items provided' });
   }
   if (!tax || shippingFee === 'undefined') {
-    return res.status(400).send({ msg: 'Please provide tax and shipping fee' });
+    throw new CustomError.BadRequestError(
+      'Please provide tax and shipping fee'
+    );
   }
   let OrderItems = [];
   let subtotal = 0;
@@ -87,7 +92,6 @@ const CreateOrder = async (req, res) => {
     user: req.user.id,
   });
 
-
   return res.json(order).status({ msg: 'create orders sussess' });
 };
 
@@ -121,7 +125,7 @@ const DeleteOrder = async (req, res) => {
 
     return res.status(200).send({ message: 'deleted' });
   } catch (error) {
-    res.status(500).send({ message: error});
+    res.status(500).send({ message: error });
   }
 };
 
